@@ -2,7 +2,7 @@
 
 
 
-'''
+
 Crear el entorno virtual
 - python -m venv venv
 
@@ -23,7 +23,5 @@ duplicar el fichero '.env_template' y renombrar a '.env'
 los valores deben ser:
 - Flask_APP = run.py
 - FLASK_ENV = el que uno quiera
-
-'''
 
 
