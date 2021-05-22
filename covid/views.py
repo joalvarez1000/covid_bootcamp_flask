@@ -6,6 +6,7 @@ from flask import render_template, request
 from covid import app   
 import csv
 import json
+from datetime import date
 
 @app.route('/provincias')
 def provincias (): 
@@ -76,24 +77,48 @@ def casos (year, mes, dia = None):
 
 @app.route ('/incidenciasdiarias', methods =['GET', 'POST'])
 def incidencia():
-    if request.method == 'GET':
-        return render_template("alta.html", casos_pcr=0)
+    
     
     #Validar que los valores de los casos sean números y sean enteros positivos
     #estudiar objeto request de la libreria
-    Valores = request.form
     #vslorar num_casos_prueba_pcr >= 0 y entero
-    try:
-        num_pcr = int(request.form["num_casos_prueba_pcr"])
-        if num_pcr < 0:
-            raise ValueError('Debe ser positivo')
-    except ValueError:
-        return render_template("alta.html", casos_pcr="Introduce un valor correcto")
+    formulario = {
+        'provincia': '',
+        'fecha': str(date.today()),
+        'num_casos_prueba_pcr': 0,
+        'num_casos_prueba_test_ac': 0, 
+        'num_casos_prueba_ag': 0,
+        'num_casos_prueba_elisa': 0,
+        'num_casos_prueba_desconocida': 0
+    }
+
+    fichero = open ('data/provincias.csv', 'r')
+    csvreader = csv.reader (fichero, delimiter =',') #ocupamos el metodo csv para delimitar la estructura ','
+    next(csvreader)
+    lista = []
+    for registro in csvreader:
+        d = {'codigo':registro[0], 'descripcion' : registro[1]}
+        lista.append (d)
+
+    fichero.close()
+
+    if request.method == 'GET':
+        return render_template("alta.html", datos=formulario, 
+                               provincias=lista, error="")
     
-    #Validar la información que llega
-    #Que el total de casos sea la suma del resto de casos
-    #Que la provincia sea correcta
-    #Que la fecha sea correcta en formato y supongo que en valor
-    #Que la fecha no sea a futuro y la fecha no sea anterior a fecha covid
-    #Si la informacion es incorrecta
+    #validar que num_casos en general no es negativo
+
+    for clave in formulario:
+        formulario[clave] = request.form [clave]
+
+
+    num_pcr = request.form ('num_casos_prueba_pcr')
+    try:
+        num_pcr = int (num_pcr)
+        if num_pcr < 0:
+            raise ValueError ('Debe ser no negativo')
+
+    except ValueError:
+        return render_template("alta.html", datos=formulario, error = "PCR no puede ser negativa")
+    
     return "Se ha hecho un post"
